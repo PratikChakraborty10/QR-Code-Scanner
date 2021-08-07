@@ -1,24 +1,26 @@
 package `in`.pratikchakraborty.qrcodescanner
 
+import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.budiyev.android.codescanner.AutoFocusMode
-import com.budiyev.android.codescanner.CodeScanner
-import com.budiyev.android.codescanner.CodeScannerView
-import com.budiyev.android.codescanner.DecodeCallback
-import com.budiyev.android.codescanner.ErrorCallback
-import com.budiyev.android.codescanner.ScanMode
+import com.budiyev.android.codescanner.*
+import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
-import java.util.jar.Manifest
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var codescanner: CodeScanner
@@ -26,6 +28,33 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         supportActionBar?.hide()
+        copy.setOnClickListener {
+                val clipboard: ClipboardManager =
+                getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText("label", result_tv.text)
+                clipboard.setPrimaryClip(clip)
+            result_tv.text.toString().isEmpty()
+            copy.setImageResource(R.drawable.ic_baseline_file_copy_24)
+            Toast.makeText(this, "Text Copied", Toast.LENGTH_SHORT).show()
+            Snackbar.make(it, "To start the scan again, you will have to click on the scan preview again", Snackbar.LENGTH_LONG)
+                .setAnimationMode(BaseTransientBottomBar.ANIMATION_MODE_SLIDE)
+                .setBackgroundTint(Color.parseColor("#4666ab"))
+                .setAction("") {
+
+                }
+                .show()
+            if(result_tv.text.isEmpty()) {
+                copy.setImageResource(R.drawable.ic_baseline_content_copy_24)
+                Toast.makeText(this, "Cannot Copy, No Text Available!", Toast.LENGTH_SHORT).show()
+                Snackbar.make(it, "To copy, you have scan something first", Snackbar.LENGTH_LONG)
+                    .setAnimationMode(BaseTransientBottomBar.ANIMATION_MODE_SLIDE)
+                    .setBackgroundTint(Color.parseColor("#4666ab"))
+                    .setAction("") {
+
+                    }
+                    .show()
+            }
+        }
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         if (Build.VERSION.SDK_INT >= 21) {
             val window = this.window
@@ -41,6 +70,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("ResourceAsColor")
     private fun startScanning() {
         val scannerView:CodeScannerView = findViewById(R.id.scanner_view)
         codescanner = CodeScanner(this, scannerView)
@@ -49,16 +79,20 @@ class MainActivity : AppCompatActivity() {
         codescanner.autoFocusMode = AutoFocusMode.SAFE
         codescanner.scanMode = ScanMode.SINGLE
         codescanner.isAutoFocusEnabled = true
-        codescanner.isFlashEnabled = false
+        codescanner.isFlashEnabled = true
         codescanner.decodeCallback = DecodeCallback {
             runOnUiThread {
-                Toast.makeText(this, "Scan Result: ${it.text}", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this, "Scan Result: ${it.text}", Toast.LENGTH_SHORT).show()
+                result_tv.text = "${it.text}"
+
             }
         }
 
         codescanner.errorCallback = ErrorCallback {
             runOnUiThread {
-                Toast.makeText(this, "Camera Initialization Error: ${it.message}", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this, "Camera Initialization Error: ${it.message}", Toast.LENGTH_SHORT).show()
+                result_tv.text = "${it.message}"
+                result_tv.setTextColor(R.color.purple_200)
             }
         }
         scannerView.setOnClickListener {
