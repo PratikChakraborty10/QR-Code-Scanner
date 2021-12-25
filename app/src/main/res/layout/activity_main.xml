@@ -61,8 +61,6 @@
             android:layout_marginEnd="15dp"
             />
 
-
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>
